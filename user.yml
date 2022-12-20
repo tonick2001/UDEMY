@@ -1,0 +1,36 @@
+---
+- name: user
+  hosts: "{{ srv }}"
+  tasks:
+    - name: Preconfig block
+      block:
+      - name: Create user
+        vars:
+          user: alaricode
+        user:
+          name: "{{ user }}"
+          state: present
+        #become: true
+        register: error
+      #- debug:
+      #    var: out
+      - name: Fail on FAILED
+        command: echo "FAILED"
+        register: command_result
+        failed_when: "'FAILED' in command_result.stdout"
+
+      - name: install curl
+        apt:
+          name: curl
+          state: absent
+          update-cache: yes
+        register: error
+      become: true
+      rescue:
+        - name: Some error print
+          debug:
+            var: error
+      always:
+        - name: Reboot
+          debug:
+            msg: "Rebooting"
